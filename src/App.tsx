@@ -12,6 +12,8 @@ import UserDetailView from './components/views/UserDetailView';
 import UsersView from './components/views/UsersView';
 import VendorsView from './components/views/VendorsView';
 import { VisitProvider } from './context/visitContext';
+import { ProductProvider } from './context/productContext';
+import ProductsView from './components/views/ProductsView';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -49,6 +51,8 @@ const AppContent: React.FC = () => {
         return <VisitsView />;
       case 'vendors':
         return <VendorsView />;
+      case 'products':
+        return <ProductsView />;
       case 'deals':
         return (
           <Box sx={{ p: 3 }}>
@@ -97,7 +101,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <Header onMenuClick={handleSidebarToggle} sidebarOpen={sidebarOpen} />
+      <Header onMenuClick={handleSidebarToggle}  />
       <Sidebar open={sidebarOpen} onItemClick={handleViewChange} currentView={currentView} onClose={() => setSidebarOpen(false)} />
       <Box
         component="main"
@@ -122,8 +126,10 @@ const App = () => {
   return (
     <AuthProvider>
       <VisitProvider>
-        <CssBaseline />
-        <AppContent />
+        <ProductProvider>
+          <CssBaseline />
+          <AppContent />
+        </ProductProvider>
       </VisitProvider>
     </AuthProvider>
   );

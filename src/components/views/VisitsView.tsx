@@ -28,6 +28,7 @@ import Grid from '@mui/material/Grid';
 import { Edit } from '@mui/icons-material';
 import { useVisits } from '../../context/visitContext';
 import type { PaymentMode, Visit, VisitOrderItem, OrderUnit } from '../../types';
+import { useProducts } from '../../context/productContext';
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.floor(ms / 1000);
@@ -80,14 +81,8 @@ const VisitsView: React.FC = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [unit, setUnit] = useState<OrderUnit>('box');
 
-  const liquorCatalog = [
-    'Whisky - Premium Blend',
-    'Vodka - Classic',
-    'Rum - Dark Reserve',
-    'Gin - Dry',
-    'Tequila - Reposado',
-    'Beer - Lager Case',
-  ];
+  const { products } = useProducts();
+  const liquorCatalog = useMemo(() => products.map(p => p.name), [products]);
 
   // Timer tick for open visits
   const [tick, setTick] = useState(0);

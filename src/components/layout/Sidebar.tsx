@@ -14,15 +14,16 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import {
-  Dashboard,
-  Group,
-  BarChart,
-  Contacts,
-  Settings,
-  EventAvailable as VisitsIcon,
-  Person,
-} from '@mui/icons-material';
+  import {
+    Dashboard,
+    Group,
+    BarChart,
+    Contacts,
+    Settings,
+    EventAvailable as VisitsIcon,
+    Person,
+    Storefront,
+  } from '@mui/icons-material';
 import { useAuth } from '../../context/authContext';
 
 const drawerWidth = 240;
@@ -44,6 +45,8 @@ const getNavItems = (userRole: string) => {
     { label: 'Analytics', view: 'analytics', icon: <BarChart /> },
     // { label: 'Performance', view: 'performance', icon: <TrendingUp /> },
     { label: 'Vendors', view: 'vendors', icon: <Contacts /> },
+    // Admin-only
+    ...(userRole === 'admin' ? ([{ label: 'Products', view: 'products', icon: <Storefront /> }] as const) : ([] as const)),
     // { label: 'Data', view: 'data', icon: <Storage /> },
     { label: 'Settings', view: 'settings', icon: <Settings /> },
   ];

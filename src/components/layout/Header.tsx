@@ -18,10 +18,9 @@ import { useAuth } from '../../context/authContext';
 
 interface HeaderProps {
   onMenuClick: () => void;
-  sidebarOpen: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick, sidebarOpen }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
