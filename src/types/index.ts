@@ -2,10 +2,27 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'ADMIN';
   avatar?: string;
   department?: string;
   joinDate?: string;
+  // Optional personal details
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  dob?: string;
+  aadhaar?: string;
+  pan?: string;
+  rc?: string;
+  // Optional structured address
+  address?: {
+    street?: string;
+    city?: string;
+    district?: string;
+    state?: string;
+    country?: string;
+    pinCode?: string;
+  };
 }
 
 export interface Lead {

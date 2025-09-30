@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline, Box } from '@mui/material';
-import { AuthProvider, useAuth } from './context/authContext';
+// import { AuthProvider, useAuth } from './context/authContext';
 import LoginPage from './components/login/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -14,17 +14,19 @@ import VendorsView from './components/views/VendorsView';
 import { VisitProvider } from './context/visitContext';
 import { ProductProvider } from './context/productContext';
 import ProductsView from './components/views/ProductsView';
+import { AuthProvider, useAuth } from './context/authContext';
+import { ToastContainer } from 'react-toastify';
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const {user} = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState<string>('');
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-
   // Set default view based on user role when user is loaded
   useEffect(() => {
-    if (user) {
-      const defaultView = user.role === 'admin' ? 'admin-dashboard' : 'dashboard';
+    console.log("user", user);
+    if (user?.role) {
+      const defaultView = user.role === 'ADMIN' ? 'admin-dashboard' : 'dashboard';
       setCurrentView(defaultView);
     }
   }, [user]);
@@ -110,7 +112,7 @@ const AppContent: React.FC = () => {
           width: { sm: `calc(100% - ${sidebarOpen ? 280 : 0}px)` },
           ml: { sm: sidebarOpen ? '10px' : 0 },
           transition: 'margin 0.3s',
-          backgroundColor: 'background.default',
+          backgroundColor: 'background.defa000inult',
           minHeight: '100vh',
           p: 3,
           mt: 3,
@@ -128,6 +130,16 @@ const App = () => {
       <VisitProvider>
         <ProductProvider>
           <CssBaseline />
+          <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light" // or "dark"
+      />
           <AppContent />
         </ProductProvider>
       </VisitProvider>

@@ -22,7 +22,7 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { People, TrendingUp, AttachMoney, Assignment, Visibility, Add } from '@mui/icons-material';
 import { useVisits } from '../../context/visitContext';
-import { useAuth } from '../../context/authContext';
+import type { User } from '../../types';
 
 interface AdminDashboardProps {
   onViewUser?: (userId: string) => void;
@@ -57,14 +57,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onViewUser }) => {
     daily: { users: '+0.2', revenue: '+0.6%', deals: '+0.3', conversion: '+0.1%' },
   } as const;
 
-  const compareLabelByRange = {
-    monthly: 'vs last month',
-    '15days': 'vs last 15 days',
-    daily: 'vs yesterday',
-  } as const;
+  // const compareLabelByRange = {
+  //   '15days': 'vs last 15 days',
+  //   daily: 'vs yesterday',
+  // } as const;
 
   const { visits } = useVisits();
-  const { users, getUserById } = useAuth();
+  // Load users list from localStorage (mirrors the key used in the commented auth context)
+  const users: User[] = React.useMemo(() => {
+    try {
+      const raw = localStorage.getItem('auth_users_all');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? (parsed as User[]) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const getUserById = React.useCallback((id: string) => users.find(u => u.id === id), [users]);
 
   const userIdToStats = useMemo(() => {
     const map = new Map<string, { userName: string; totalVisits: number; closedVisits: number; totalOrderItems: number }>();
@@ -155,7 +165,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onViewUser }) => {
                     {metricChanges[range][metric.k]}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {compareLabelByRange[range]}
+                   'vs last month'
                   </Typography>
                 </Box>
               </CardContent>

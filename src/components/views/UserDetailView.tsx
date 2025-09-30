@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Card, CardContent, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
 import { useVisits } from '../../context/visitContext';
-import { useAuth } from '../../context/authContext';
+import { getUserId } from '../../services/axiosClient';
+// import { useAuth } from '../../context/authContext';
 
 interface UserDetailViewProps {
   userId: string;
@@ -10,8 +11,8 @@ interface UserDetailViewProps {
 
 const UserDetailView: React.FC<UserDetailViewProps> = ({ userId }) => {
   const { visits, vendors } = useVisits() as any;
-  const { getUserById } = useAuth();
-  const user = getUserById(userId);
+ 
+  const user = getUserId();
 
   const userVisits = useMemo(() => visits.filter((v: any) => v.createdBy === userId), [visits, userId]);
 
@@ -23,15 +24,15 @@ const UserDetailView: React.FC<UserDetailViewProps> = ({ userId }) => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
-        {user?.name || 'User'} — Details
+        {user || 'User'} — Details
       </Typography>
       <Box  sx={{ display: 'flex', flexDirection: 'row',justifyContent: 'space-between', gap: 2 }}>
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="body1">Email: {user?.email}</Typography>
-          <Typography variant="body1">Role: {user?.role}</Typography>
-          <Typography variant="body1">Department: {user?.department || '—'}</Typography>
+          <Typography variant="body1">Email: {user}</Typography>
+          <Typography variant="body1">Role: {user}</Typography>
+          <Typography variant="body1">Department: {user || '—'}</Typography>
           <Typography variant="body1">Total Visits: {userVisits.length}</Typography>
           <Typography variant="body1">Total Order Items: {totalOrderItems}</Typography>
         </CardContent>

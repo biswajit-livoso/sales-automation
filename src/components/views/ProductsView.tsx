@@ -8,6 +8,8 @@ const ProductsView: React.FC = () => {
 
   const [name, setName] = useState('');
   const [price, setPrice] = useState<string>('');
+  const [category, setCategory] = useState('');
+  const [subCategory, setSubCategory] = useState('');
   const [unitBox, setUnitBox] = useState(true);
   const [unitPcs, setUnitPcs] = useState(true);
 
@@ -24,9 +26,13 @@ const ProductsView: React.FC = () => {
       price: price ? Number(price) : undefined,
       unitOptions,
       active: true,
+      category: category.trim() || undefined,
+      subCategory: subCategory.trim() || undefined,
     });
     setName('');
     setPrice('');
+    setCategory('');
+    setSubCategory('');
     setUnitBox(true);
     setUnitPcs(true);
   };
@@ -47,6 +53,8 @@ const ProductsView: React.FC = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'flex-end' }}>
             <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} fullWidth />
             <TextField label="Price (optional)" type="number" value={price} onChange={(e) => setPrice(e.target.value)} sx={{ minWidth: 180 }} />
+            <TextField label="Category" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ minWidth: 180 }} />
+            <TextField label="Sub Category" value={subCategory} onChange={(e) => setSubCategory(e.target.value)} sx={{ minWidth: 180 }} />
             <FormControlLabel control={<Checkbox checked={unitBox} onChange={(e) => setUnitBox(e.target.checked)} />} label="Box" />
             <FormControlLabel control={<Checkbox checked={unitPcs} onChange={(e) => setUnitPcs(e.target.checked)} />} label="Pcs" />
             <Button variant="contained" onClick={handleAdd} disabled={!canSubmit}>
@@ -66,6 +74,8 @@ const ProductsView: React.FC = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
+              <TableCell>Category</TableCell>
+              <TableCell>Sub Category</TableCell>
               <TableCell>Units</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -76,6 +86,8 @@ const ProductsView: React.FC = () => {
               <TableRow key={p.id} hover>
                 <TableCell>{p.name}</TableCell>
                 <TableCell>{p.price ? `₹${p.price.toFixed(2)}` : '—'}</TableCell>
+                <TableCell>{p.category || '—'}</TableCell>
+                <TableCell>{p.subCategory || '—'}</TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
                     {p.unitOptions.map(u => (

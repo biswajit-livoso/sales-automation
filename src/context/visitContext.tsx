@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Vendor, Visit, VisitPaymentInfo, VisitOrderItem } from '../types';
-import { useAuth } from './authContext';
 
 interface VisitContextType {
   vendors: Vendor[];
@@ -31,7 +30,7 @@ const defaultVendors: Vendor[] = [
 ];
 
 export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const user = localStorage.getItem('user');
   // Simple unique ID generator to avoid external dependency
   const generateId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   const [vendors, setVendors] = useState<Vendor[]>(() => {
@@ -77,7 +76,7 @@ export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const newVisit: Visit = {
       id: generateId(),
       vendorId,
-      createdBy: user.id,
+      createdBy: user,
       topic,
       createdAt: new Date().toISOString(),
       status: 'open',

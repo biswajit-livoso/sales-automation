@@ -7,6 +7,8 @@ export interface Product {
   price?: number;
   unitOptions: Array<'box' | 'pcs'>;
   active: boolean;
+  category?: string;
+  subCategory?: string;
 }
 
 interface ProductContextType {
@@ -21,9 +23,9 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 const PRODUCTS_KEY = 'products';
 
 const defaultProducts: Product[] = [
-  { id: 'p1', name: 'Whisky - Premium Blend', price: 1500, unitOptions: ['box', 'pcs'], active: true },
-  { id: 'p2', name: 'Vodka - Classic', price: 1200, unitOptions: ['box', 'pcs'], active: true },
-  { id: 'p3', name: 'Beer - Lager Case', price: 800, unitOptions: ['box'], active: true },
+  { id: 'p1', name: 'Whisky - Premium Blend', price: 1500, unitOptions: ['box', 'pcs'], active: true, category: 'Spirits', subCategory: 'Whisky' },
+  { id: 'p2', name: 'Vodka - Classic', price: 1200, unitOptions: ['box', 'pcs'], active: true, category: 'Spirits', subCategory: 'Vodka' },
+  { id: 'p3', name: 'Beer - Lager Case', price: 800, unitOptions: ['box'], active: true, category: 'Beer', subCategory: 'Lager' },
 ];
 
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -49,6 +51,8 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
       price: input.price ?? undefined,
       unitOptions: input.unitOptions && input.unitOptions.length > 0 ? input.unitOptions : ['box', 'pcs'],
       active: input.active ?? true,
+      category: input.category?.trim() || undefined,
+      subCategory: input.subCategory?.trim() || undefined,
     };
     setProducts(prev => [product, ...prev]);
     return product;

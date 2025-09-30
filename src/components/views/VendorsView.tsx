@@ -2,11 +2,11 @@ import React from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { useVisits } from '../../context/visitContext';
-import { useAuth } from '../../context/authContext';
+// import { useAuth } from '../../context/authContext';
 
 const VendorsView: React.FC = () => {
   const { vendors, addVendor, updateVendor } = useVisits() as any;
-  const { user } = useAuth();
+  const  user  = localStorage.getItem('user');
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState('');
   const [contactName, setContactName] = React.useState('');
@@ -22,7 +22,7 @@ const VendorsView: React.FC = () => {
   const [eAddress, setEAddress] = React.useState('');
 
   const handleAdd = () => {
-    if (user?.role !== 'admin') return;
+    if (user !== 'ADMIN') return;
     if (!name.trim()) return;
     addVendor({ name: name.trim(), contactName: contactName.trim() || undefined, phone: phone.trim() || undefined, email: email.trim() || undefined, address: address.trim() || undefined });
     setOpen(false);
@@ -34,7 +34,7 @@ const VendorsView: React.FC = () => {
   };
 
   const openEdit = (v: any) => {
-    if (user?.role !== 'admin') return;
+    if (user !== 'admin') return;
     setEditingId(v.id);
     setEName(v.name || '');
     setEContactName(v.contactName || '');
@@ -45,7 +45,7 @@ const VendorsView: React.FC = () => {
   };
 
   const handleUpdate = () => {
-    if (user?.role !== 'admin' || !editingId) return;
+    if (user !== 'admin' || !editingId) return;
     updateVendor(editingId, {
       name: eName.trim() || undefined,
       contactName: eContactName.trim() || undefined,
@@ -61,7 +61,7 @@ const VendorsView: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="h5" fontWeight={700}>Vendors</Typography>
-        {user?.role === 'admin' && (
+        {user === 'admin' && (
           <Button variant="contained" onClick={() => setOpen(true)}>Add Vendor</Button>
         )}
       </Box>
@@ -83,7 +83,7 @@ const VendorsView: React.FC = () => {
               <TableCell>{v.phone || '—'}</TableCell>
               <TableCell>{v.email || '—'}</TableCell>
               <TableCell>{v.address || '—'}</TableCell>
-              {user?.role === 'admin' && (
+              {user === 'admin' && (
                 <TableCell width={60} align="right">
                   <IconButton size="small" onClick={() => openEdit(v)}>
                     <Edit />
@@ -108,7 +108,7 @@ const VendorsView: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAdd} variant="contained" disabled={user?.role !== 'admin' || !name.trim()}>Add</Button>
+          <Button onClick={handleAdd} variant="contained" disabled={user !== 'admin' || !name.trim()}>Add</Button>
         </DialogActions>
       </Dialog>
 
@@ -125,7 +125,7 @@ const VendorsView: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={handleUpdate} variant="contained" disabled={user?.role !== 'admin' || !eName.trim()}>Update</Button>
+          <Button onClick={handleUpdate} variant="contained" disabled={user !== 'admin' || !eName.trim()}>Update</Button>
         </DialogActions>
       </Dialog>
     </Box>

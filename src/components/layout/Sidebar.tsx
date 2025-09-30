@@ -25,6 +25,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
     Storefront,
   } from '@mui/icons-material';
 import { useAuth } from '../../context/authContext';
+// import { useAuth } from '../../context/authContext';
 
 const drawerWidth = 240;
 
@@ -37,7 +38,7 @@ interface SidebarProps {
 
 const getNavItems = (userRole: string) => {
   const baseItems = [
-    { label: 'Dashboard', view: userRole === 'admin' ? 'admin-dashboard' : 'dashboard', icon: <Dashboard /> },
+    { label: 'Dashboard', view: userRole === 'ADMIN' ? 'admin-dashboard' : 'dashboard', icon: <Dashboard /> },
     { label: 'Leads', view: 'leads', icon: <Group /> },
     { label: 'Visits', view: 'visits', icon: <VisitsIcon /> },
     { label: 'User', view: 'user', icon: <Person /> },
@@ -46,16 +47,16 @@ const getNavItems = (userRole: string) => {
     // { label: 'Performance', view: 'performance', icon: <TrendingUp /> },
     { label: 'Vendors', view: 'vendors', icon: <Contacts /> },
     // Admin-only
-    ...(userRole === 'admin' ? ([{ label: 'Products', view: 'products', icon: <Storefront /> }] as const) : ([] as const)),
+    ...(userRole === 'ADMIN' ? ([{ label: 'Products', view: 'products', icon: <Storefront /> }] as const) : ([] as const)),
     // { label: 'Data', view: 'data', icon: <Storage /> },
     { label: 'Settings', view: 'settings', icon: <Settings /> },
   ];
 
   // Filter out visits for admin users
-  if (userRole === 'admin') {
+  if (userRole === 'ADMIN') {
     return baseItems.filter(item => item.view !== 'visits');
   }
-  if (userRole === 'user') {
+  if (userRole === 'USER') {
     return baseItems.filter(item => item.view !== 'user');
   }
   
@@ -66,6 +67,7 @@ const getNavItems = (userRole: string) => {
 const Sidebar: React.FC<SidebarProps> = ({ open, onItemClick, currentView, onClose }) => {
   const { user } = useAuth();
   const navItems = getNavItems(user?.role || 'user');
+  console.log("navItems", user?.role);
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 

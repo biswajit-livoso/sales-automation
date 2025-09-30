@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             startIcon={<AccountCircle />}
             sx={{ textTransform: 'none' }}
           >
-            {user?.name}
+            {user?.firstName + " " + user?.lastName}
           </Button>
           <Menu
             id="menu-appbar"
