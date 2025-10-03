@@ -8,20 +8,21 @@ import {
   DialogTitle,
   Stack,
   TextField,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Chip,
   Typography,
+  IconButton,
 } from "@mui/material";
 // import { useAuth } from "../../context/authContext";
 
-import { allUsers,  register } from "../../services/services";
+import { allUsers, register } from "../../services/services";
 import { toast } from "react-toastify";
+import GlobalTable from "../../reUsableComponents/globalTable/GlobalTable";
+import { useAuth } from "../../context/authContext";
+import { Delete, Edit } from "@mui/icons-material";
 
 const UsersView: React.FC = () => {
+    const { user } = useAuth();
+  
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
@@ -42,6 +43,29 @@ const UsersView: React.FC = () => {
       pinCode: "",
     },
   });
+  const columns = [
+    { label: "Sl No", key: "slNo" },
+    {
+      label: "Name",
+      key: "name",
+      render: (row: any) => `${row.firstName} ${row.lastName}`,
+    },
+    { label: "Email", key: "email" },
+    { label: "Role", key: "role", render: (row: any) => <Chip label={row.role} color={row.role === "ADMIN" ? "secondary" : "primary"} size="small" /> },
+    { label: "Department", key: "department", render: (row: any) => row.department || "—" },
+    { label: "Join Date", key: "joinDate", render: (row: any) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—" },
+    { label: "Actions", key: "actions",render: () =>
+      user?.role === "ADMIN" && (
+        <>
+          <IconButton size="small" color="primary" onClick={() => alert('Functionality not implemented')}>
+            <Edit />
+          </IconButton>
+          <IconButton size="small" color="error" onClick={() => alert('Functionality not implemented')}>
+            <Delete />
+          </IconButton>
+        </>
+      ), },
+  ];
   const handleAddressChange = (
     key: keyof typeof form.address,
     value: string
@@ -52,17 +76,16 @@ const UsersView: React.FC = () => {
     }));
   };
 
-
   const handleAdd = async () => {
     try {
       const fd = new FormData();
       fd.append("data", JSON.stringify(form));
-  
+
       const res = await register(fd); // ✅ Await the response
       console.log(res);
-  
+
       toast.success("User added successfully");
-  
+
       // Reset form and close modal AFTER success
       setForm({
         firstName: "",
@@ -83,14 +106,16 @@ const UsersView: React.FC = () => {
           pinCode: "",
         },
       });
-  
+
       setOpen(false); // ✅ Only close after successful add
     } catch (error: any) {
       console.log(error);
-  
+
       // Show meaningful error message
       const message =
-        error?.response?.data?.message || error.message || "Something went wrong";
+        error?.response?.data?.message ||
+        error.message ||
+        "Something went wrong";
       toast.error(message);
     }
   };
@@ -105,10 +130,10 @@ const UsersView: React.FC = () => {
         console.error("Failed to fetch user:", err);
       }
     };
-  
+
     fetchMe(); // Call the async function
   }, [open]);
- 
+
   return (
     <Box sx={{ p: 3 }}>
       <Box
@@ -126,38 +151,7 @@ const UsersView: React.FC = () => {
           Add User
         </Button>
       </Box>
-      <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Name</TableCell>
-          <TableCell>Email</TableCell>
-          <TableCell>Role</TableCell>
-          <TableCell>Department</TableCell>
-          <TableCell>Join Date</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {[...users].reverse().map((u: any) => (
-          <TableRow key={u._id} hover>
-            <TableCell>{`${u.firstName} ${u.lastName}`}</TableCell>
-            <TableCell>{u.email}</TableCell>
-            <TableCell>
-              <Chip
-                size="small"
-                label={u.role}
-                color={u.role === "ADMIN" ? "secondary" : "primary"}
-              />
-            </TableCell>
-            <TableCell>{u.department || "—"}</TableCell>
-            <TableCell>
-              {u.createdAt
-                ? new Date(u.createdAt).toLocaleDateString()
-                : "—"}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+      <GlobalTable columns={columns} rows={users} />
 
       <Dialog
         open={open}

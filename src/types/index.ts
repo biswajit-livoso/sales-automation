@@ -98,7 +98,7 @@ export interface VisitPaymentInfo {
 }
 
 export interface Visit {
-  id: string;
+  _id: string;
   vendorId: string;
   createdBy: string; // user id
   topic: string; // what to discuss

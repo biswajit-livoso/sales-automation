@@ -58,9 +58,9 @@ export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setVisits(prev => {
       let changed = false;
       const updated = prev.map(v => {
-        if (!v.id) {
+        if (!v._id) {
           changed = true;
-          return { ...v, id: generateId() };
+          return { ...v, _id: generateId() };
         }
         return v;
       });
@@ -74,7 +74,7 @@ export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const createVisit = (vendorId: string, topic: string): Visit => {
     if (!user) throw new Error('Must be logged in to create a visit');
     const newVisit: Visit = {
-      id: generateId(),
+      _id: generateId(),
       vendorId,
       createdBy: user,
       topic,
@@ -92,7 +92,7 @@ export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   ) => {
     setVisits(prev =>
       prev.map(v =>
-        v.id === visitId
+        v._id === visitId
           ? {
               ...v,
               status: 'closed',
@@ -112,7 +112,7 @@ export const VisitProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   ) => {
     setVisits(prev =>
       prev.map(v =>
-        v.id === visitId
+        v._id === visitId
           ? {
               ...v,
               ...(payload.discussionSummary !== undefined && { discussionSummary: payload.discussionSummary }),

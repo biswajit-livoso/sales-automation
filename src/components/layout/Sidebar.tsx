@@ -67,7 +67,6 @@ const getNavItems = (userRole: string) => {
 const Sidebar: React.FC<SidebarProps> = ({ open, onItemClick, currentView, onClose }) => {
   const { user } = useAuth();
   const navItems = getNavItems(user?.role || 'user');
-  console.log("navItems", user?.role);
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
