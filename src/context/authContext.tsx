@@ -25,8 +25,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Optionally load from localStorage/sessionStorage
+    console.log(token,"token")
+    console.log(user,"user")
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem('accessToken');
 
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
@@ -38,13 +40,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(user);
     setToken(token);
     localStorage.setItem('user', JSON.stringify(user));
-    localStorage.setItem('token', token);
+    localStorage.setItem('accessToken', token);
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
   };
 
   const hasRole = (...roles: string[]) => {

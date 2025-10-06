@@ -14,15 +14,22 @@ import { LoginOutlined } from "@mui/icons-material";
 import { login } from "../../services/services";
 import { useAuth } from "../../context/authContext";
 import { setCurrentAccessToken } from "../../services/axiosClient";
+import { Navigate, useNavigate } from "react-router-dom";
+import { paths } from "../../paths";
 // import { useAuth } from '../../context/authContext';
 
 const LoginPage: React.FC = () => {
-  const { loginAuth } = useAuth();
+  const { loginAuth, user } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   // const { login, isLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  if (user) {
+    const target = user.role === "ADMIN" ? paths.admin : paths.dashboard;
+    return <Navigate to={target} replace />;
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -36,10 +43,14 @@ const LoginPage: React.FC = () => {
       const response = await login({ email: email, password: password });
       if (response) {
         setIsLoading(false);
+        console.log("response", response.data.token);
+        console.log("response", response.data.result);
         const token = response.data.token;
-        const result = response.data.result;
+        const user = response.data.result;
+        loginAuth(user,token);
         setCurrentAccessToken(token);
-        loginAuth(result, token);
+        const target = user.role === "ADMIN" ? paths.admin : paths.dashboard;
+navigate(target, { replace: true });
       } else {
         setIsLoading(false);
         setError("Invalid email or password");

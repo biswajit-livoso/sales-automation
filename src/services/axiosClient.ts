@@ -18,6 +18,7 @@ const BASE_URL = "http://localhost:5000/api/v1/";
 
 export function getCurrentAccessToken() {
   return localStorage.getItem("accessToken");
+  
 }
 
 export function isLoggedIn() {
@@ -35,6 +36,7 @@ export async function logout() {
 }
 
 export function setCurrentAccessToken(accessToken:any) {
+  console.log("setaccessToken", accessToken);
   return localStorage.setItem("accessToken", accessToken);
 }
 

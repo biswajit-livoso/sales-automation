@@ -54,3 +54,12 @@ export function closeVisit(id: string, payload: any) {
 export function myVisits() {
   return client.get(`/visits/me/v`);
 }
+export function updateVisit(id: string, payload: any) {
+  return client.post(`/visits/update/${id}`, payload);
+}
+export function getAllVisits() {
+  return client.get(`/visits/admin`);
+}
+export function getVisitsToday() {
+  return client.get(`/visits/today/admin`);
+}
