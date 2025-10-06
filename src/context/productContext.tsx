@@ -1,74 +1,78 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
-// Local Product type to avoid dependency on shared types
-export interface Product {
-  id: string;
-  name: string;
-  price?: number;
-  unitOptions: Array<'box' | 'pcs'>;
-  active: boolean;
-}
+// import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+// import type { ReactNode } from 'react';
+// // Local Product type to avoid dependency on shared types
+// export interface Product {
+//   id: string;
+//   name: string;
+//   price?: number;
+//   unitOptions: Array<'box' | 'pcs'>;
+//   active: boolean;
+//   category?: string;
+//   subCategory?: string;
+// }
 
-interface ProductContextType {
-  products: Product[];
-  addProduct: (input: Omit<Product, 'id'> & Partial<Pick<Product, 'id'>>) => Product;
-  updateProduct: (productId: string, updates: Partial<Omit<Product, 'id'>>) => void;
-  deleteProduct: (productId: string) => void;
-}
+// interface ProductContextType {
+//   products: Product[];
+//   addProduct: (input: Omit<Product, 'id'> & Partial<Pick<Product, 'id'>>) => Product;
+//   updateProduct: (productId: string, updates: Partial<Omit<Product, 'id'>>) => void;
+//   deleteProduct: (productId: string) => void;
+// }
 
-const ProductContext = createContext<ProductContextType | undefined>(undefined);
+// const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
-const PRODUCTS_KEY = 'products';
+// const PRODUCTS_KEY = 'products';
 
-const defaultProducts: Product[] = [
-  { id: 'p1', name: 'Whisky - Premium Blend', price: 1500, unitOptions: ['box', 'pcs'], active: true },
-  { id: 'p2', name: 'Vodka - Classic', price: 1200, unitOptions: ['box', 'pcs'], active: true },
-  { id: 'p3', name: 'Beer - Lager Case', price: 800, unitOptions: ['box'], active: true },
-];
+// const defaultProducts: Product[] = [
+//   { id: 'p1', name: 'Whisky - Premium Blend', price: 1500, unitOptions: ['box', 'pcs'], active: true, category: 'Spirits', subCategory: 'Whisky' },
+//   { id: 'p2', name: 'Vodka - Classic', price: 1200, unitOptions: ['box', 'pcs'], active: true, category: 'Spirits', subCategory: 'Vodka' },
+//   { id: 'p3', name: 'Beer - Lager Case', price: 800, unitOptions: ['box'], active: true, category: 'Beer', subCategory: 'Lager' },
+// ];
 
-export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Simple unique ID generator
-  const generateId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+// export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+//   // Simple unique ID generator
+//   const generateId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem(PRODUCTS_KEY);
-    if (saved) return JSON.parse(saved) as Product[];
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(defaultProducts));
-    return defaultProducts;
-  });
+//   const [products, setProducts] = useState<Product[]>(() => {
+//     const saved = localStorage.getItem(PRODUCTS_KEY);
+//     if (saved) return JSON.parse(saved) as Product[];
+//     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(defaultProducts));
+//     return defaultProducts;
+//   });
 
-  useEffect(() => {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-  }, [products]);
+//   useEffect(() => {
+//     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+//   }, [products]);
 
-  const addProduct: ProductContextType['addProduct'] = (input) => {
-    const id = input.id || generateId();
-    const product: Product = {
-      id,
-      name: input.name,
-      price: input.price ?? undefined,
-      unitOptions: input.unitOptions && input.unitOptions.length > 0 ? input.unitOptions : ['box', 'pcs'],
-      active: input.active ?? true,
-    };
-    setProducts(prev => [product, ...prev]);
-    return product;
-  };
+//   const addProduct: ProductContextType['addProduct'] = (input) => {
+//     const id = input.id || generateId();
+//     const product: Product = {
+//       id,
+//       name: input.name,
+//       price: input.price ?? undefined,
+//       unitOptions: input.unitOptions && input.unitOptions.length > 0 ? input.unitOptions : ['box', 'pcs'],
+//       active: input.active ?? true,
+//       category: input.category?.trim() || undefined,
+//       subCategory: input.subCategory?.trim() || undefined,
+//     };
+//     setProducts(prev => [product, ...prev]);
+//     return product;
+//   };
 
-  const updateProduct: ProductContextType['updateProduct'] = (productId, updates) => {
-    setProducts(prev => prev.map(p => (p.id === productId ? { ...p, ...updates } : p)));
-  };
+//   const updateProduct: ProductContextType['updateProduct'] = (productId, updates) => {
+//     setProducts(prev => prev.map(p => (p.id === productId ? { ...p, ...updates } : p)));
+//   };
 
-  const deleteProduct: ProductContextType['deleteProduct'] = (productId) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
-  };
+//   const deleteProduct: ProductContextType['deleteProduct'] = (productId) => {
+//     setProducts(prev => prev.filter(p => p.id !== productId));
+//   };
 
-  const value = useMemo(() => ({ products, addProduct, updateProduct, deleteProduct }), [products]);
+//   const value = useMemo(() => ({ products, addProduct, updateProduct, deleteProduct }), [products]);
 
-  return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
-};
+//   return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
+// };
 
-export const useProducts = () => {
-  const ctx = useContext(ProductContext);
-  if (!ctx) throw new Error('useProducts must be used within a ProductProvider');
-  return ctx;
-};
+// export const useProducts = () => {
+//   const ctx = useContext(ProductContext);
+//   if (!ctx) throw new Error('useProducts must be used within a ProductProvider');
+//   return ctx;
+// };

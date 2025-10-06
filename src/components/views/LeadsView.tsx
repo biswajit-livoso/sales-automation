@@ -27,11 +27,7 @@ import {
 
 const LeadsView: React.FC = () => {
   const leads = [
-    { id: 1, name: 'John Doe', email: 'john@techcorp.com', company: 'Tech Corp', status: 'qualified', value: '$15,000', source: 'Website', assignedTo: 'You' },
-    { id: 2, name: 'Sarah Wilson', email: 'sarah@innovationlabs.com', company: 'Innovation Labs', status: 'contacted', value: '$8,500', source: 'Referral', assignedTo: 'You' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@startupxyz.com', company: 'StartupXYZ', status: 'new', value: '$12,000', source: 'Cold Call', assignedTo: 'You' },
-    { id: 4, name: 'Lisa Brown', email: 'lisa@digitalsolutions.com', company: 'Digital Solutions', status: 'proposal', value: '$22,000', source: 'LinkedIn', assignedTo: 'You' },
-    { id: 5, name: 'Tom Garcia', email: 'tom@futuretech.com', company: 'FutureTech', status: 'new', value: '$18,500', source: 'Website', assignedTo: 'You' },
+    { id: 1, name: 'John Doe', email: 'john@techcorp.com', company: 'Tech Corp', status: 'qualified', value: '$15,000', source: 'Website', assignedTo: 'You' }
   ];
 
   const getStatusColor = (status: string) => {

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { CssBaseline, Box } from '@mui/material';
-import { AuthProvider, useAuth } from './context/authContext';
 import LoginPage from './components/login/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -8,101 +7,30 @@ import UserDashboard from './components/dashboard/UserDashboard';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import LeadsView from './components/views/LeadsView';
 import VisitsView from './components/views/VisitsView';
-import UserDetailView from './components/views/UserDetailView';
+import UserDetailPage from './components/views/UserDetailPage';
 import UsersView from './components/views/UsersView';
 import VendorsView from './components/views/VendorsView';
-import { VisitProvider } from './context/visitContext';
-import { ProductProvider } from './context/productContext';
 import ProductsView from './components/views/ProductsView';
+import { AuthProvider, useAuth } from './context/authContext';
+import { ToastContainer } from 'react-toastify';
+import AdminView from './components/views/AdminView';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { paths } from './paths';
 
-const AppContent: React.FC = () => {
+const AppShell: React.FC = () => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [currentView, setCurrentView] = useState<string>('');
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
 
-  // Set default view based on user role when user is loaded
-  useEffect(() => {
-    if (user) {
-      const defaultView = user.role === 'admin' ? 'admin-dashboard' : 'dashboard';
-      setCurrentView(defaultView);
-    }
-  }, [user]);
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen((prev) => !prev);
-  };
-
-  const handleViewChange = (view: string) => {
-    setCurrentView(view);
-  };
-
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'dashboard':
-        return <UserDashboard onCreateVisit={() => setCurrentView('visits')} />;
-      case 'admin-dashboard':
-        return <AdminDashboard onViewUser={(userId) => { setSelectedUserId(userId); setCurrentView('user-detail'); }} />;
-      case 'user-detail':
-        return <UserDetailView userId={selectedUserId} />;
-      case 'leads':
-        return <LeadsView />;
-      case 'visits':
-        return <VisitsView />;
-      case 'vendors':
-        return <VendorsView />;
-      case 'products':
-        return <ProductsView />;
-      case 'deals':
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Deals View</h2>
-            <p>Deals management interface coming soon...</p>
-          </Box>
-        );
-      case 'tasks':
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Tasks View</h2>
-            <p>Task management interface coming soon...</p>
-          </Box>
-        );
-      case 'users':
-        return <UsersView />;
-      case 'user':
-        return <UsersView />;
-      case 'analytics':
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Analytics</h2>
-            <p>Advanced analytics interface coming soon...</p>
-          </Box>
-        );
-      case 'settings':
-      case 'system-settings':
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Settings</h2>
-            <p>Settings interface coming soon...</p>
-          </Box>
-        );
-      default:
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Welcome</h2>
-            <p>Select a view from the sidebar.</p>
-          </Box>
-        );
-    }
-  };
-
-  // If user is not logged in, show login page
-  if (!user) return <LoginPage />;
+  if (!user) {
+    return <Navigate to={paths.login} replace />;
+  }
+console.log("user at app shell", user);
+  const handleSidebarToggle = () => setSidebarOpen((p) => !p);
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <Header onMenuClick={handleSidebarToggle}  />
-      <Sidebar open={sidebarOpen} onItemClick={handleViewChange} currentView={currentView} onClose={() => setSidebarOpen(false)} />
+      <Header onMenuClick={handleSidebarToggle} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Box
         component="main"
         sx={{
@@ -116,21 +44,59 @@ const AppContent: React.FC = () => {
           mt: 3,
         }}
       >
-        {renderCurrentView()}
+        <Outlet />
       </Box>
     </Box>
   );
 };
 
+const RedirectHome: React.FC = () => {
+  const { user } = useAuth();
+  console.log("user at redirect home", user?.role);
+  if (!user) return <Navigate to={paths.login} replace />;
+  const target = user.role === 'ADMIN' ? paths.admin : paths.dashboard;
+  return <Navigate to={target} replace />;
+};
+
 const App = () => {
   return (
     <AuthProvider>
-      <VisitProvider>
-        <ProductProvider>
           <CssBaseline />
-          <AppContent />
-        </ProductProvider>
-      </VisitProvider>
+          <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
+          <BrowserRouter>
+            <Routes>
+              {/* Public */}
+              <Route path={paths.login} element={<LoginPage />} />
+
+              {/* Protected layout */}
+              <Route element={<AppShell />}> 
+                <Route index element={<RedirectHome />} />
+                <Route path={paths.dashboard} element={<UserDashboard />} />
+                <Route path={paths.admin} element={<AdminDashboard />} />
+                <Route path={paths.visits} element={<VisitsView />} />
+                <Route path={paths.leads || '/leads'} element={<LeadsView />} />
+                <Route path={paths.adminVisits} element={<AdminView />} />
+                <Route path={paths.users} element={<UsersView />} />
+                <Route path="/users/:id" element={<UserDetailPage />} />
+                <Route path={paths.vendors} element={<VendorsView />} />
+                <Route path={paths.products} element={<ProductsView />} />
+                <Route path={paths.analytics} element={<Box sx={{ p: 3 }}><h2>Analytics</h2><p>Advanced analytics interface coming soon...</p></Box>} />
+                <Route path={paths.settings} element={<Box sx={{ p: 3 }}><h2>Settings</h2><p>Settings interface coming soon...</p></Box>} />
+              </Route>
+
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to={paths.root} replace />} />
+            </Routes>
+          </BrowserRouter>
     </AuthProvider>
   );
 };

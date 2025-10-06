@@ -25,45 +25,45 @@ import useMediaQuery from '@mui/material/useMediaQuery';
     Storefront,
   } from '@mui/icons-material';
 import { useAuth } from '../../context/authContext';
+import { NavLink } from 'react-router-dom';
+import { paths } from '../../paths';
 
 const drawerWidth = 240;
 
 interface SidebarProps {
   open: boolean;
-  onItemClick: (view: string) => void;
-  currentView: string;
   onClose?: () => void;
 }
 
 const getNavItems = (userRole: string) => {
   const baseItems = [
-    { label: 'Dashboard', view: userRole === 'admin' ? 'admin-dashboard' : 'dashboard', icon: <Dashboard /> },
-    { label: 'Leads', view: 'leads', icon: <Group /> },
-    { label: 'Visits', view: 'visits', icon: <VisitsIcon /> },
-    { label: 'User', view: 'user', icon: <Person /> },
+    { label: 'Dashboard', to: userRole === 'ADMIN' ? paths.admin : paths.dashboard, icon: <Dashboard /> },
+    { label: 'Leads', to: '/leads', icon: <Group /> },
+    { label: 'Visits', to: userRole === 'ADMIN' ? paths.adminVisits : paths.visits, icon: <VisitsIcon /> },
+    { label: 'Users', to: paths.users, icon: <Person /> },
     // { label: 'Deals', view: 'deals', icon: <CheckBox /> },
-    { label: 'Analytics', view: 'analytics', icon: <BarChart /> },
+    { label: 'Analytics', to: paths.analytics, icon: <BarChart /> },
     // { label: 'Performance', view: 'performance', icon: <TrendingUp /> },
-    { label: 'Vendors', view: 'vendors', icon: <Contacts /> },
+    { label: 'Vendors', to: paths.vendors, icon: <Contacts /> },
     // Admin-only
-    ...(userRole === 'admin' ? ([{ label: 'Products', view: 'products', icon: <Storefront /> }] as const) : ([] as const)),
+    ...(userRole === 'ADMIN' ? ([{ label: 'Products', to: paths.products, icon: <Storefront /> }] as const) : ([] as const)),
     // { label: 'Data', view: 'data', icon: <Storage /> },
-    { label: 'Settings', view: 'settings', icon: <Settings /> },
+    { label: 'Settings', to: paths.settings, icon: <Settings /> },
   ];
 
   // Filter out visits for admin users
-  if (userRole === 'admin') {
-    return baseItems.filter(item => item.view !== 'visits');
-  }
-  if (userRole === 'user') {
-    return baseItems.filter(item => item.view !== 'user');
+  // if (userRole === 'ADMIN') {
+  //   return baseItems.filter(item => item.view !== 'visits');
+  // }
+  if (userRole === 'USER') {
+    return baseItems.filter(item => item.to !== paths.users);
   }
   
 
   return baseItems;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ open, onItemClick, currentView, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const { user } = useAuth();
   const navItems = getNavItems(user?.role || 'user');
   const theme = useTheme();
@@ -96,16 +96,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onItemClick, currentView, onClo
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
       <List>
-        {navItems.map(({ label, view, icon }) => (
-          <ListItem key={view} disablePadding>
+        {navItems.map(({ label, to, icon }) => (
+          <ListItem key={label} disablePadding>
             <ListItemButton
-              onClick={() => {
-                onItemClick(view);
-                if (isSmall && onClose) onClose();
-              }}
-              selected={currentView === view}
+              component={NavLink}
+              to={to as string}
+              onClick={() => { if (isSmall && onClose) onClose(); }}
               sx={{
-                '&.Mui-selected': {
+                '&.active': {
                   backgroundColor: '#333',
                   color: '#fff',
                 },
