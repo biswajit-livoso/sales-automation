@@ -12,20 +12,20 @@ export function me() {
 export function allUsers() {
   return client.get("/users/admin");
 }
-export function addVendor(payload: any) {
-  return client.post("/vendors", payload);
+export function addParty(payload: any) {
+  return client.post("/parties", payload);
 }
-export function getAllVendors() {
-  return client.get("/vendors");
+export function getAllParties() {
+  return client.get("/parties");
 }
-export function updateVendor(id: string, payload: any) {
-  return client.post(`/vendors/${id}`, payload);
+export function updateParty(id: string, payload: any) {
+  return client.post(`/parties/${id}`, payload);
 }
-export function deleteVendor(id: string) {
-  return client.delete(`/vendors/${id}`);
+export function deleteParty(id: string) {
+  return client.delete(`/parties/${id}`);
 }
-export function getVendor(id: string) {
-  return client.get(`/vendors/${id}`);
+export function getParty(id: string) {
+  return client.get(`/parties/${id}`);
 }
 export function addProduct(payload: any) {
   return client.post("/products", payload);
@@ -62,4 +62,19 @@ export function getAllVisits() {
 }
 export function getVisitsToday() {
   return client.get(`/visits/today/admin`);
+}
+export function getCategories() {
+  return client.get(`/categories`);
+}
+export function addCategory(payload: any) {
+  return client.post(`/categories`, payload);
+}
+export function addPurchase(payload: any) {
+  return client.post(`/purchases`, payload);
+}
+export function updatePurchase(id: string, payload: any) {
+  return client.post(`/purchases/${id}`, payload);
+}
+export function allPurchase() {
+  return client.get(`/purchases`);
 }

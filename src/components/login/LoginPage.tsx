@@ -43,8 +43,6 @@ const LoginPage: React.FC = () => {
       const response = await login({ email: email, password: password });
       if (response) {
         setIsLoading(false);
-        console.log("response", response.data.token);
-        console.log("response", response.data.result);
         const token = response.data.token;
         const user = response.data.result;
         loginAuth(user,token);
@@ -56,7 +54,7 @@ navigate(target, { replace: true });
         setError("Invalid email or password");
       }
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
       setIsLoading(false);
       setError("An error occurred during login");
     }

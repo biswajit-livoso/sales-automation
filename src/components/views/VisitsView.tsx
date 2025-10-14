@@ -740,8 +740,8 @@ import {
   closeVisit,
   createVisit,
   currentVisit,
+  getAllParties,
   getAllProducts,
-  getAllVendors,
   myVisits,
   updateVisit,
 } from "../../services/services";
@@ -918,7 +918,7 @@ const VisitsView: React.FC = () => {
     });
   };
   useEffect(() => {
-    getAllVendors().then((res) => {
+    getAllParties().then((res) => {
       console.log(res.data);
       setVendors(res.data.result);
     });

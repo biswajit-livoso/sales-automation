@@ -8,6 +8,8 @@ import {
   Box,
   Menu,
   MenuItem,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -36,7 +38,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     logout();
     handleClose();
   };
-
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
   return (
     <AppBar
       position="fixed"
@@ -48,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       }}
     >
       <Toolbar>
-        <IconButton
+        {isSmall && <IconButton
           color="inherit"
           aria-label="open drawer"
           onClick={onMenuClick}
@@ -56,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           sx={{ mr: 2 }}
         >
           <MenuIcon />
-        </IconButton>
+        </IconButton>}
 
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
           Sales Automation Platform

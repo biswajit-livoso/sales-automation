@@ -96,7 +96,6 @@ const AdminView: React.FC = () => {
       const [closedVisits, setClosedVisits] = useState([]);
       useEffect(() => {
         getAllVisits().then((res) => {
-          console.log(res.data);
           setClosedVisits(res.data.result);
         });
       }, []);

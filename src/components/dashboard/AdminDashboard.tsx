@@ -160,7 +160,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
   // Load users list from localStorage (mirrors the key used in the commented auth context)
   useEffect(() => {
     getVisitsToday().then((res) => {
-      console.log(res.data.result, "res.data.result");
       setVisitsToday(res.data.result);
     });
   }, []);

@@ -82,9 +82,8 @@ const UsersView: React.FC = () => {
       fd.append("data", JSON.stringify(form));
 
       const res = await register(fd); // ✅ Await the response
-      console.log(res);
 
-      toast.success("User added successfully");
+      toast.success(res.data.message || "User added successfully");
 
       // Reset form and close modal AFTER success
       setForm({
@@ -109,7 +108,7 @@ const UsersView: React.FC = () => {
 
       setOpen(false); // ✅ Only close after successful add
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
 
       // Show meaningful error message
       const message =
@@ -124,7 +123,6 @@ const UsersView: React.FC = () => {
     const fetchMe = async () => {
       try {
         const res = await allUsers();
-        console.log(res.data.result);
         setUsers(res.data.result);
       } catch (err) {
         console.error("Failed to fetch user:", err);

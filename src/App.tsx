@@ -9,13 +9,15 @@ import LeadsView from './components/views/LeadsView';
 import VisitsView from './components/views/VisitsView';
 import UserDetailPage from './components/views/UserDetailPage';
 import UsersView from './components/views/UsersView';
-import VendorsView from './components/views/VendorsView';
 import ProductsView from './components/views/ProductsView';
 import { AuthProvider, useAuth } from './context/authContext';
 import { ToastContainer } from 'react-toastify';
 import AdminView from './components/views/AdminView';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { paths } from './paths';
+import PurchasesView from './components/views/PurchasesView';
+import CreatePurchases from './components/views/CreatePurchases';
+import PartyView from './components/views/PartyView';
 
 const AppShell: React.FC = () => {
   const { user } = useAuth();
@@ -24,7 +26,6 @@ const AppShell: React.FC = () => {
   if (!user) {
     return <Navigate to={paths.login} replace />;
   }
-console.log("user at app shell", user);
   const handleSidebarToggle = () => setSidebarOpen((p) => !p);
 
   return (
@@ -52,7 +53,6 @@ console.log("user at app shell", user);
 
 const RedirectHome: React.FC = () => {
   const { user } = useAuth();
-  console.log("user at redirect home", user?.role);
   if (!user) return <Navigate to={paths.login} replace />;
   const target = user.role === 'ADMIN' ? paths.admin : paths.dashboard;
   return <Navigate to={target} replace />;
@@ -87,8 +87,10 @@ const App = () => {
                 <Route path={paths.adminVisits} element={<AdminView />} />
                 <Route path={paths.users} element={<UsersView />} />
                 <Route path="/users/:id" element={<UserDetailPage />} />
-                <Route path={paths.vendors} element={<VendorsView />} />
+                <Route path={paths.party} element={<PartyView />} />
                 <Route path={paths.products} element={<ProductsView />} />
+                <Route path={paths.purchases} element={<PurchasesView />} />
+                <Route path={paths.createPurchase} element={<CreatePurchases />} />
                 <Route path={paths.analytics} element={<Box sx={{ p: 3 }}><h2>Analytics</h2><p>Advanced analytics interface coming soon...</p></Box>} />
                 <Route path={paths.settings} element={<Box sx={{ p: 3 }}><h2>Settings</h2><p>Settings interface coming soon...</p></Box>} />
               </Route>

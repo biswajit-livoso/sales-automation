@@ -1,6 +1,6 @@
 // src/components/Sidebar/Sidebar.tsx
 
-import React from 'react';
+import React from "react";
 import {
   Drawer,
   List,
@@ -11,22 +11,23 @@ import {
   Divider,
   Box,
   Typography,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-  import {
-    Dashboard,
-    Group,
-    BarChart,
-    Contacts,
-    Settings,
-    EventAvailable as VisitsIcon,
-    Person,
-    Storefront,
-  } from '@mui/icons-material';
-import { useAuth } from '../../context/authContext';
-import { NavLink } from 'react-router-dom';
-import { paths } from '../../paths';
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import {
+  Dashboard,
+  Group,
+  // BarChart,
+  Contacts,
+  // Settings,
+  EventAvailable as VisitsIcon,
+  Person,
+  Storefront,
+  Category,
+} from "@mui/icons-material";
+import { useAuth } from "../../context/authContext";
+import { NavLink } from "react-router-dom";
+import { paths } from "../../paths";
 
 const drawerWidth = 240;
 
@@ -37,41 +38,53 @@ interface SidebarProps {
 
 const getNavItems = (userRole: string) => {
   const baseItems = [
-    { label: 'Dashboard', to: userRole === 'ADMIN' ? paths.admin : paths.dashboard, icon: <Dashboard /> },
-    { label: 'Leads', to: '/leads', icon: <Group /> },
-    { label: 'Visits', to: userRole === 'ADMIN' ? paths.adminVisits : paths.visits, icon: <VisitsIcon /> },
-    { label: 'Users', to: paths.users, icon: <Person /> },
+    {
+      label: "Dashboard",
+      to: userRole === "ADMIN" ? paths.admin : paths.dashboard,
+      icon: <Dashboard />,
+    },
+    { label: "Leads", to: "/leads", icon: <Group /> },
+    {
+      label: "Visits",
+      to: userRole === "ADMIN" ? paths.adminVisits : paths.visits,
+      icon: <VisitsIcon />,
+    },
+    { label: "Users", to: paths.users, icon: <Person /> },
     // { label: 'Deals', view: 'deals', icon: <CheckBox /> },
-    { label: 'Analytics', to: paths.analytics, icon: <BarChart /> },
+    // { label: "Analytics", to: paths.analytics, icon: <BarChart /> },
     // { label: 'Performance', view: 'performance', icon: <TrendingUp /> },
-    { label: 'Vendors', to: paths.vendors, icon: <Contacts /> },
+    { label: "Party", to: paths.party, icon: <Contacts /> },
+    { label: "Purchases", to: paths.purchases, icon: <Storefront /> },
     // Admin-only
-    ...(userRole === 'ADMIN' ? ([{ label: 'Products', to: paths.products, icon: <Storefront /> }] as const) : ([] as const)),
+    ...(userRole === "ADMIN"
+      ? ([
+          { label: "Products", to: paths.products, icon: <Category /> },
+        ] as const)
+      : ([] as const)),
     // { label: 'Data', view: 'data', icon: <Storage /> },
-    { label: 'Settings', to: paths.settings, icon: <Settings /> },
+    // { label: "Settings", to: paths.settings, icon: <Settings /> },
   ];
 
   // Filter out visits for admin users
   // if (userRole === 'ADMIN') {
   //   return baseItems.filter(item => item.view !== 'visits');
   // }
-  if (userRole === 'USER') {
-    return baseItems.filter(item => item.to !== paths.users);
+  if (userRole === "USER") {
+    return baseItems.filter((item) => item.to !== paths.users);
   }
-  
 
   return baseItems;
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const { user } = useAuth();
-  const navItems = getNavItems(user?.role || 'user');
+  const navItems = getNavItems(user?.role || "user");
   const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Drawer
-      variant={isSmall ? 'temporary' : 'persistent'}
+      variant={isSmall ? "temporary" : "persistent"}
       anchor="left"
       open={open}
       onClose={onClose}
@@ -79,11 +92,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        '& .MuiDrawer-paper': {
+        "& .MuiDrawer-paper": {
           width: drawerWidth,
-          backgroundColor: '#1e1e2f',
-          color: '#fff',
-          boxSizing: 'border-box',
+          backgroundColor: "#1e1e2f",
+          color: "#fff",
+          boxSizing: "border-box",
         },
       }}
     >
@@ -93,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         </Typography>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+      <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
 
       <List>
         {navItems.map(({ label, to, icon }) => (
@@ -101,18 +114,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             <ListItemButton
               component={NavLink}
               to={to as string}
-              onClick={() => { if (isSmall && onClose) onClose(); }}
+              onClick={() => {
+                if (isSmall && onClose) onClose();
+              }}
               sx={{
-                '&.active': {
-                  backgroundColor: '#333',
-                  color: '#fff',
+                "&.active": {
+                  backgroundColor: "#333",
+                  color: "#fff",
                 },
-                '&:hover': {
-                  backgroundColor: '#2e2e45',
+                "&:hover": {
+                  backgroundColor: "#2e2e45",
                 },
               }}
             >
-              <ListItemIcon sx={{ color: '#ccc' }}>{icon}</ListItemIcon>
+              <ListItemIcon sx={{ color: "#ccc" }}>{icon}</ListItemIcon>
               <ListItemText primary={label} />
             </ListItemButton>
           </ListItem>

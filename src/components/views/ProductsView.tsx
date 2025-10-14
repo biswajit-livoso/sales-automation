@@ -2,21 +2,25 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  Card,
-  CardContent,
   Checkbox,
   FormControlLabel,
   Stack,
   TextField,
   Typography,
   IconButton,
-  ListItem,
-  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
+  CircularProgress,
+  ToggleButtonGroup,
+  ToggleButton,
+  Autocomplete,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import {
@@ -24,19 +28,37 @@ import {
   updateProduct,
   deleteProduct,
   getAllProducts,
+  getCategories,
+  addCategory,
 } from "../../services/services";
 import { toast } from "react-toastify";
 import GlobalTable from "../../reUsableComponents/globalTable/GlobalTable";
+import { QUANTITY_OPTIONS } from "../../utils/ConstantDatas";
 
 const ProductsView: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [edit, setEdit] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [unitSelection, setUnitSelection] = useState({
+    baseUnit: "",
+    secondaryUnit: "",
+    conversionRate: "",
+  });
+  const [categories, setCategories] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [openAddCategoryDialog, setOpenAddCategoryDialog] = useState(false);
+  const [openAddUnitsDialog, setOpenAddUnitsDialog] = useState(false);
+  const [productType, setProductType] = useState<"PRODUCT" | "SERVICE">(
+    "PRODUCT"
+  );
+  const unit = `1 ${unitSelection.baseUnit}=${unitSelection.conversionRate}  ${unitSelection.secondaryUnit}`;
+
   // Liquor category and subcategory options
   const columns = [
     { label: "Sl No", key: "slNo" },
     { label: "Name", key: "name" },
-    { label: "Category", key: "category" },
     {
       label: "Price",
       key: "price",
@@ -47,14 +69,22 @@ const ProductsView: React.FC = () => {
     { label: "Stock", key: "stock" },
     { label: "Category", key: "category" },
     { label: "Sub Category", key: "subCategory" },
-    { label: "Status", key: "status", render: (row: any) => <>  <Chip
-      label={row.status === "active" ? "Active" : "Inactive"}
-      color={row.status === "active" ? "success" : "default"}
-      size="small"
-      onClick={() => toggleStatus(row.id, row.status)}
-      clickable
-    />
-    </> },
+    {
+      label: "Status",
+      key: "status",
+      render: (row: any) => (
+        <>
+          {" "}
+          <Chip
+            label={row.status === "active" ? "Active" : "Inactive"}
+            color={row.status === "active" ? "success" : "default"}
+            size="small"
+            onClick={() => toggleStatus(row.id, row.status)}
+            clickable
+          />
+        </>
+      ),
+    },
     {
       label: "Actions",
       key: "actions",
@@ -74,82 +104,108 @@ const ProductsView: React.FC = () => {
       ),
     },
   ];
-  const CATEGORY_OPTIONS = [
-    "Whisky",
-    "Rum",
-    "Vodka",
-    "Gin",
-    "Brandy",
-    "Wine",
-    "Beer",
-    "Tequila",
-    "Liqueur",
-  ];
-  const SUBCATEGORY_MAP: Record<string, string[]> = {
-    Whisky: ["Blended", "Single Malt"],
-    Rum: ["Dark", "White", "Spiced"],
-    Vodka: ["Plain", "Flavored"],
-    Gin: ["London Dry", "Old Tom"],
-    Brandy: ["Cognac", "Armagnac"],
-    Wine: ["Red", "White", "Rosé", "Sparkling"],
-    Beer: ["Lager", "Ale", "Stout", "IPA"],
-    Tequila: ["Blanco", "Reposado", "Añejo"],
-    Liqueur: ["Herbal", "Fruit", "Cream"],
-  };
+
   type ProductForm = {
     name: string;
-    price: string;
     stock: string;
     description: string;
     category: string;
-    subCategory: string;
+    subCategory?: string;
     units: string[];
     status: string;
+    hsnCode: string;
+    mrp: string;
+    discount: string;
+    salePrice: string;
+    wholesalePrice: string;
+    purchasePrice: string;
+    tax: string;
+    taxInclusive: boolean;
+    trackInventory: boolean;
+    reorderLevel: string;
+    type: string;
+    baseUnit?: string;
+    secondaryUnit?: string;
+    conversionRate?: string;
+    image?: string;
   };
+
   const [form, setForm] = useState<ProductForm>({
     name: "",
-    price: "",
-    stock: "",
     description: "",
-    category: CATEGORY_OPTIONS[0],
-    subCategory: SUBCATEGORY_MAP["Whisky"][0],
-    units: [],
+    type: productType,
+    category: "",
+    subCategory: "",
+    image: "",
+    units: [unit],
     status: "active",
+    hsnCode: "",
+    mrp: "",
+    discount: "",
+    salePrice: "",
+    wholesalePrice: "",
+    purchasePrice: "",
+    tax: "",
+    taxInclusive: false,
+    trackInventory: false,
+    reorderLevel: "",
+    stock: "",
   });
 
-  const canSubmit = form.name.trim().length > 0 && form.units.length > 0;
+  const canSubmit =
+    form.name.trim().length > 0 && unitSelection.baseUnit.trim().length > 0;
 
-  const handleAdd = async () => {
-    if (!canSubmit) return;
-
-    const newProduct = {
-      name: form.name.trim(),
-      price: form.price ? Number(form.price) : 0,
-      stock: form.stock ? Number(form.stock) : 0,
-      description: form.description.trim() || undefined,
-      category: form.category.trim(),
-      subCategory: form.subCategory.trim(),
-      units: form.units,
-      status: "active",
-    };
-
-    const saved = await addProduct(newProduct);
-    if (saved.status === 201) {
-      toast.success("Product added successfully");
-    }
-    // setProducts((prev) => [...prev, saved]);
-
-    // Reset fields
+  const handleOpenAdd = () => {
     setForm({
       name: "",
-      price: "",
-      stock: "",
       description: "",
-      category: CATEGORY_OPTIONS[0],
-      subCategory: SUBCATEGORY_MAP[CATEGORY_OPTIONS[0]][0],
-      units: [],
+      type: productType,
+      category: "",
+      subCategory: "",
+      units: [unit],
       status: "active",
+      hsnCode: "",
+      mrp: "",
+      discount: "",
+      salePrice: "",
+      wholesalePrice: "",
+      purchasePrice: "",
+      tax: "",
+      taxInclusive: false,
+      trackInventory: false,
+      reorderLevel: "",
+      stock: "",
+      image: "",
     });
+    setIsEdit(false);
+    setEditId(null);
+    setOpenDialog(true);
+  };
+  const openEdit = (product: any) => {
+    setForm({
+      name: product.name || "",
+      description: product.description || "",
+      type: product.type || "",
+      category: product.category || "",
+      subCategory: product.subCategory || "",
+      units: Array.isArray(product.units) ? product.units : [],
+      status: product.status || "active",
+      hsnCode: product.hsnCode || "",
+      mrp: product.mrp || 0,
+      discount: product.discount || 0,
+      salePrice: product.salePrice || 0,
+      wholesalePrice: product.wholesalePrice || 0,
+      purchasePrice: product.purchasePrice || 0,
+      tax: product.tax || 0,
+      taxInclusive: product.taxInclusive || false,
+      trackInventory: product.trackInventory || false,
+      reorderLevel: product.reorderLevel || 0,
+      stock: product.stock || "",
+      image: product.image || "",
+    });
+    setIsEdit(true);
+    setEditId(product._id);
+    setOpenDialog(true);
   };
 
   const activeCount = useMemo(
@@ -165,55 +221,54 @@ const ProductsView: React.FC = () => {
     );
   };
 
-  const openEdit = (p: any) => {
-    console.log(p._id);
+  const handleSubmit = async () => {
+    if (!canSubmit || loading) return;
 
-    setEditId(p._id);
-    setForm({
-      name: p.name || "",
-      price: String(p.price ?? ""),
-      stock: String(p.stock ?? ""),
-      description: p.description || "",
-      category:
-        p.category && CATEGORY_OPTIONS.includes(p.category)
-          ? p.category
-          : CATEGORY_OPTIONS[0],
-      subCategory:
-        p.subCategory && SUBCATEGORY_MAP[p.category]?.includes(p.subCategory)
-          ? p.subCategory
-          : SUBCATEGORY_MAP[
-              p.category && CATEGORY_OPTIONS.includes(p.category)
-                ? p.category
-                : CATEGORY_OPTIONS[0]
-            ][0],
-      units: Array.isArray(p.units) ? p.units : [],
-      status: p.status || "active",
-    });
-    setEdit(true);
-  };
+    setLoading(true);
 
-  const submitEdit = async () => {
-    console.log(editId, "1234213");
-    if (!editId) return;
+    const productData = {
+      ...form,
+    };
 
-    const saved = await updateProduct(editId, {
-      name: form.name.trim(),
-      price: form.price ? Number(form.price) : 0,
-      stock: form.stock ? Number(form.stock) : 0,
-      description: form.description.trim() || undefined,
-      category: form.category,
-      subCategory: form.subCategory,
-      units: form.units,
-      status: form.status,
-    });
-    if (saved.status === 200) {
-      toast.success("Product added successfully");
+    try {
+      let res;
+
+      if (isEdit && editId) {
+         const fd = new FormData();
+        fd.append("data", JSON.stringify(productData));
+        if (form.image) {
+          fd.append("image", form.image);
+        }
+        res = await updateProduct(editId, fd);
+        if (res.status === 200) {
+          toast.success("Product updated successfully");
+        }
+      } else {
+        const fd = new FormData();
+        fd.append("data", JSON.stringify(productData));
+        if (form.image) {
+          fd.append("image", form.image);
+        }
+        res = await addProduct(fd);
+        if (res.status === 201) {
+          toast.success("Product added successfully");
+        }
+      }
+
+      // Refresh list
+      const productsRes = await getAllProducts();
+      setProducts(productsRes.data.result);
+
+      // Reset & close dialog
+      setOpenDialog(false);
+      setEditId(null);
+      setIsEdit(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
-    // refresh list and close
-    const res = await getAllProducts();
-    setProducts(res.data.result);
-    setEdit(false);
-    setEditId(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -225,57 +280,98 @@ const ProductsView: React.FC = () => {
       setProducts((prev) => prev.filter((p) => p.id !== id));
     }
   };
+
+  const handleAddCategory = async () => {
+    const res = await addCategory({ name: newCategory });
+    try {
+      if (res.status === 201) {
+        toast.success("Category added successfully");
+        setNewCategory("");
+        const categoriesRes = await getCategories();
+        setCategories(categoriesRes.data.result);
+        setOpenAddCategoryDialog(false);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
+  };
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await getAllProducts();
         setProducts(res.data.result);
-        console.log(res.data.result);
       } catch (err) {
         console.error("Failed to fetch products:", err);
       }
     };
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res.data.result);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
+    };
+    fetchCategories();
     fetchProducts();
   }, []);
+  const handleFileChange = (e: any) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setForm((prev) => ({ ...prev, imageFile: file, image: url }));
+    }
+  };
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
         Products
       </Typography>
-
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
+      <Button variant="contained" onClick={handleOpenAdd} sx={{ mb: 2 }}>
+        Add Product
+      </Button>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>{isEdit ? "Edit Product" : "Add Product"}</DialogTitle>
+        <DialogContent>
           <Typography variant="subtitle1" fontWeight={600} gutterBottom>
             Add Product
           </Typography>
-          <Stack
-            direction={{ xs: "column", sm: "row", lg: "row" }}
-            alignItems={{ sm: "flex-end" }}
-            flexWrap="wrap"
-          >
-            <ListItem>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 2,
-                  width: "100%",
-                }}
-              >
-                {" "}
-                <TextField
-                  label="Name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  fullWidth
-                />
-                <TextField
-                  label="Price"
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  fullWidth
-                />
+
+          <Stack spacing={2}>
+            <ToggleButtonGroup
+              color="primary"
+              exclusive
+              value={productType}
+              onChange={(_, newValue) => {
+                if (newValue !== null) {
+                  setProductType(newValue);
+                  setForm((prevForm) => ({
+                    ...prevForm,
+                    type: newValue,
+                  }));
+                }
+              }}
+              sx={{ mb: 2 }}
+            >
+              <ToggleButton value="PRODUCT">Product</ToggleButton>
+              <ToggleButton value="SERVICE">Service</ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* Row 1: Name, Description, HSN Code */}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="Name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                fullWidth
+              />
+              {productType === "PRODUCT" && (
                 <TextField
                   label="Description"
                   value={form.description}
@@ -284,15 +380,294 @@ const ProductsView: React.FC = () => {
                   }
                   fullWidth
                 />
+              )}
+              <TextField
+                label="HSN Code"
+                value={form.hsnCode}
+                onChange={(e) => setForm({ ...form, hsnCode: e.target.value })}
+                fullWidth
+              />
+            </Stack>
+            {/* Row 5: Subcategory, Type */}
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2,
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              }}
+            >
+              <Autocomplete
+                value={form.category}
+                onChange={(_, newValue) => {
+                  setForm({ ...form, category: newValue });
+                }}
+                options={[
+                  ...categories.map((cat: any) => {
+                    return cat.name;
+                  }),
+                  "__add_new__",
+                ]}
+                renderInput={(params) => (
+                  <TextField {...params} label="Category" fullWidth />
+                )}
+                renderOption={(props, option) => {
+                  if (option === "__add_new__") {
+                    return (
+                      <>
+                        {/* <li {...props} key="add-new-option"> */}
+                        <Box sx={{ width: "100%", textAlign: "center" }}>
+                          <Button
+                            fullWidth
+                            color="primary"
+                            size="small"
+                            onClick={() => setOpenAddCategoryDialog(true)}
+                          >
+                            + Add New Category
+                          </Button>
+                        </Box>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <li {...props} key={option}>
+                      {option}
+                    </li>
+                  );
+                }}
+                fullWidth
+                disableClearable
+              />
+              <Box>
+                <Dialog
+                  open={openAddCategoryDialog}
+                  onClose={() => setOpenAddCategoryDialog(false)}
+                >
+                  <DialogTitle>Add New Category</DialogTitle>
+                  <DialogContent>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      label="Category Name"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      type="text"
+                      fullWidth
+                      variant="standard"
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenAddCategoryDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={() => handleAddCategory()}>Add</Button>
+                  </DialogActions>
+                </Dialog>
+                <Button
+                  variant="outlined"
+                  sx={{ mr: 2 }}
+                  onClick={() => setOpenAddUnitsDialog(true)}
+                >
+                  Select Units
+                </Button>
+                {unitSelection.baseUnit && <Chip label={unit} />}
               </Box>
-            </ListItem>
-            <ListItem>
+              <Dialog
+                open={openAddUnitsDialog}
+                onClose={() => setOpenAddUnitsDialog(false)}
+              >
+                <DialogTitle>Add Units</DialogTitle>
+                <DialogContent>
+                  <Stack
+                    sx={{
+                      m: 2,
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: "center",
+                      minWidth: 500,
+                      justifyContent: "center",
+                      gap: 2,
+                    }}
+                  >
+                    {" "}
+                    <FormControl fullWidth>
+                      <InputLabel id="demo-simple-select-label">
+                        Base Unit
+                      </InputLabel>
+                      <Select
+                        value={unitSelection.baseUnit}
+                        onChange={(e) =>
+                          setUnitSelection({
+                            ...unitSelection,
+                            baseUnit: e.target.value,
+                          })
+                        }
+                        label="Base Unit"
+                        // onChange={handleChange}
+                      >
+                        {QUANTITY_OPTIONS.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl fullWidth>
+                      <InputLabel id="demo-simple-select-label">
+                        Secondary Unit
+                      </InputLabel>
+
+                      <Select
+                        value={unitSelection.secondaryUnit}
+                        onChange={(e) =>
+                          setUnitSelection({
+                            ...unitSelection,
+                            secondaryUnit: e.target.value,
+                          })
+                        }
+                        label="Secondary Unit"
+                      >
+                        {QUANTITY_OPTIONS.map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                  {unitSelection.baseUnit && unitSelection.secondaryUnit && (
+                    <Stack>
+                      <Typography variant="h6" gutterBottom>
+                        Conversion Rate:
+                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography>1 {unitSelection.baseUnit} =</Typography>
+                        <TextField
+                          type="number"
+                          size="small"
+                          sx={{ width: 100 }}
+                          value={unitSelection.conversionRate}
+                          onChange={(e) =>
+                            setUnitSelection({
+                              ...unitSelection,
+                              conversionRate: e.target.value,
+                            })
+                          }
+                        />
+                        <Typography>{unitSelection.secondaryUnit}</Typography>
+                      </Box>
+                    </Stack>
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenAddUnitsDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => setOpenAddUnitsDialog(false)}
+                    disabled={
+                      !unitSelection.conversionRate ||
+                      !unitSelection.baseUnit ||
+                      !unitSelection.secondaryUnit
+                    }
+                  >
+                    Add
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Box>
+
+            {/* Row 2: MRP, Sale Price, Purchase Price */}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="MRP"
+                type="number"
+                value={form.mrp}
+                onChange={(e) => setForm({ ...form, mrp: e.target.value })}
+                fullWidth
+              />
+              {productType === "PRODUCT" && (
+                <>
+                  {" "}
+                  <TextField
+                    label="Purchase Price"
+                    type="number"
+                    value={form.purchasePrice}
+                    onChange={(e) =>
+                      setForm({ ...form, purchasePrice: e.target.value })
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Sale Price"
+                    type="number"
+                    value={form.salePrice}
+                    onChange={(e) =>
+                      setForm({ ...form, salePrice: e.target.value })
+                    }
+                    fullWidth
+                  />
+                </>
+              )}
+            </Stack>
+
+            {/* Row 3: Wholesale Price, Discount, Tax */}
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="Discount (%)"
+                type="number"
+                value={form.discount}
+                onChange={(e) => setForm({ ...form, discount: e.target.value })}
+                fullWidth
+              />
+              {productType === "PRODUCT" && (
+                <>
+                  <TextField
+                    label="Wholesale Price"
+                    type="number"
+                    value={form.wholesalePrice}
+                    onChange={(e) =>
+                      setForm({ ...form, wholesalePrice: e.target.value })
+                    }
+                    fullWidth
+                  />
+
+                  <TextField
+                    label="Tax (%)"
+                    type="number"
+                    value={form.tax}
+                    onChange={(e) => setForm({ ...form, tax: e.target.value })}
+                    fullWidth
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel id="demo-simple-select-label">Tax</InputLabel>
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={form.taxInclusive.toString()}
+                      label="Tax"
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          taxInclusive: e.target.value === "true",
+                        })
+                      }
+                    >
+                      <MenuItem value="true">With Tax</MenuItem>
+                      <MenuItem value="false">Without Tax</MenuItem>
+                    </Select>
+                  </FormControl>
+                </>
+              )}
+            </Stack>
+
+            {/* Row 4: Stock, Reorder Level, Category */}
+            {productType === "PRODUCT" ? (
               <Box
                 sx={{
-                  display: "flex",
-                  flexDirection: "row",
+                  display: "grid",
                   gap: 2,
-                  width: "100%",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
                 }}
               >
                 <TextField
@@ -303,209 +678,61 @@ const ProductsView: React.FC = () => {
                   fullWidth
                 />
                 <TextField
-                  select
-                  label="Category"
-                  value={form.category}
+                  label="Reorder Level"
+                  type="number"
+                  value={form.reorderLevel}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      category: e.target.value as string,
-                      subCategory: SUBCATEGORY_MAP[e.target.value as string][0],
-                    })
+                    setForm({ ...form, reorderLevel: e.target.value })
                   }
                   fullWidth
-                >
-                  {CATEGORY_OPTIONS.map((opt: string) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  label="Sub Category"
-                  value={form.subCategory}
-                  onChange={(e) =>
-                    setForm({ ...form, subCategory: e.target.value as string })
-                  }
-                  fullWidth
-                >
-                  {SUBCATEGORY_MAP[form.category]?.map((opt: string) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.units.includes("Box")}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          units: e.target.checked
-                            ? [...form.units, "Box"]
-                            : form.units.filter((u) => u !== "Box"),
-                        })
-                      }
-                    />
-                  }
-                  label="Box"
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={form.units.includes("Pcs")}
+                      checked={form.trackInventory}
                       onChange={(e) =>
-                        setForm({
-                          ...form,
-                          units: e.target.checked
-                            ? [...form.units, "Pcs"]
-                            : form.units.filter((u) => u !== "Pcs"),
-                        })
+                        setForm({ ...form, trackInventory: e.target.checked })
                       }
                     />
                   }
-                  label="Pcs"
+                  label="Track Inventory"
+                  sx={{ wordBreak: "keep-all" }}
                 />
-                <Button
-                  variant="contained"
-                  onClick={handleAdd}
-                  disabled={!canSubmit}
-                  fullWidth
-                >
-                  Add
-                </Button>
               </Box>
-            </ListItem>
+            ) : (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </>
+            )}
           </Stack>
-        </CardContent>
-      </Card>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={!canSubmit || loading}
+          >
+            {loading ? (
+              <CircularProgress size={20} />
+            ) : isEdit ? (
+              "Update"
+            ) : (
+              "Add"
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
         {products.length} total • {activeCount} active
       </Typography>
 
       <GlobalTable columns={columns} rows={products} />
-
-      <Dialog
-        open={edit}
-        onClose={() => setEdit(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Edit Product</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Price"
-              type="number"
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              fullWidth
-            />
-            <TextField
-              label="Stock"
-              type="number"
-              value={form.stock}
-              onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              select
-              label="Category"
-              value={form.category}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  category: e.target.value as string,
-                  subCategory: SUBCATEGORY_MAP[e.target.value as string][0],
-                })
-              }
-              fullWidth
-            >
-              {CATEGORY_OPTIONS.map((opt: string) => (
-                <MenuItem key={opt} value={opt}>
-                  {opt}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Sub Category"
-              value={form.subCategory}
-              onChange={(e) =>
-                setForm({ ...form, subCategory: e.target.value as string })
-              }
-              fullWidth
-            >
-              {SUBCATEGORY_MAP[form.category]?.map((opt: string) => (
-                <MenuItem key={opt} value={opt}>
-                  {opt}
-                </MenuItem>
-              ))}
-            </TextField>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.units.includes("Box")}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        units: e.target.checked
-                          ? [...form.units, "Box"]
-                          : form.units.filter((u) => u !== "Box"),
-                      })
-                    }
-                  />
-                }
-                label="Box"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.units.includes("Pcs")}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        units: e.target.checked
-                          ? [...form.units, "Pcs"]
-                          : form.units.filter((u) => u !== "Pcs"),
-                      })
-                    }
-                  />
-                }
-                label="Pcs"
-              />
-            </Box>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEdit(false)}>Cancel</Button>
-          <Button
-            onClick={submitEdit}
-            variant="contained"
-            disabled={!form.name.trim()}
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

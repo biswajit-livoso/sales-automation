@@ -15,8 +15,10 @@ export const paths = {
   adminVisits: '/admin/visits',
 
   // Catalog
-  vendors: '/vendors',
+  party: '/party',
   products: '/products',
+  purchases: '/purchases',
+  createPurchase: '/purchases/create',
 
   // Misc
   analytics: '/analytics',
