@@ -3,6 +3,9 @@ import { client } from "./axiosClient";
 export function register(payLoad: any) {
   return client.post("/auth/register", payLoad);
 }
+export function updateUser(id: string, payLoad: any) {
+  return client.patch(`/auth/register/${id}`, payLoad);
+}
 export function login(payLoad: any) {
   return client.post("/auth/login", payLoad);
 }

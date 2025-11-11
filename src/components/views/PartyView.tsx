@@ -71,7 +71,6 @@ const PartyView: React.FC = () => {
   const columns = [
     { label: "Sl No", key: "slNo", width: "5%" },
     { label: "Name", key: "name", width: "15%" },
-    { label: "Contact Name", key: "contactName" },
     { label: "Phone", key: "phone" },
     { label: "Email", key: "email" },
     { label: "Address", key: "address", width: "10%" },

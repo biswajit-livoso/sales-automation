@@ -252,8 +252,7 @@ const PurchasesView: React.FC = () => {
           color="primary"
           onClick={() => setSelectedPurchase(row)}
         >
-          {" "}
-          <RemoveRedEye />{" "}
+          <RemoveRedEye />
         </Button>
       ),
     },

@@ -53,17 +53,16 @@ const ProductsView: React.FC = () => {
   const [productType, setProductType] = useState<"PRODUCT" | "SERVICE">(
     "PRODUCT"
   );
-  const unit = `1 ${unitSelection.baseUnit}=${unitSelection.conversionRate}  ${unitSelection.secondaryUnit}`;
 
   // Liquor category and subcategory options
   const columns = [
     { label: "Sl No", key: "slNo" },
     { label: "Name", key: "name" },
     {
-      label: "Price",
-      key: "price",
+      label: "MRP",
+      key: "mrp",
       render: (row: any) => (
-        <span style={{ fontWeight: "bold" }}>₹{row.price}</span>
+        <span style={{ fontWeight: "bold" }}>₹{row.mrp}</span>
       ),
     },
     { label: "Stock", key: "stock" },
@@ -137,7 +136,7 @@ const ProductsView: React.FC = () => {
     category: "",
     subCategory: "",
     image: "",
-    units: [unit],
+    units: [],
     status: "active",
     hsnCode: "",
     mrp: "",
@@ -162,7 +161,7 @@ const ProductsView: React.FC = () => {
       type: productType,
       category: "",
       subCategory: "",
-      units: [unit],
+      units: [],
       status: "active",
       hsnCode: "",
       mrp: "",
@@ -228,13 +227,14 @@ const ProductsView: React.FC = () => {
 
     const productData = {
       ...form,
+      units: `1 ${unitSelection.baseUnit}=${unitSelection.conversionRate}  ${unitSelection.secondaryUnit}`,
     };
-
+console.log(productData);
     try {
       let res;
 
       if (isEdit && editId) {
-         const fd = new FormData();
+        const fd = new FormData();
         fd.append("data", JSON.stringify(productData));
         if (form.image) {
           fd.append("image", form.image);
@@ -470,7 +470,11 @@ const ProductsView: React.FC = () => {
                 >
                   Select Units
                 </Button>
-                {unitSelection.baseUnit && <Chip label={unit} />}
+                {unitSelection.baseUnit && (
+                  <Chip
+                    label={`1 ${unitSelection.baseUnit}=${unitSelection.conversionRate}  ${unitSelection.secondaryUnit}`}
+                  />
+                )}
               </Box>
               <Dialog
                 open={openAddUnitsDialog}
